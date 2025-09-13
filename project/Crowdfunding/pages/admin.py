@@ -1,7 +1,7 @@
 # accounts/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Category, Tag, Project, ProjectPicture, Donation, Comment, Rating, Report
+from .models import User, Tag, Project, ProjectPicture, Donation, Comment, Rating, Report
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -100,7 +100,7 @@ class ProjectPictureAdmin(admin.ModelAdmin):
     preview_image.short_description = 'Preview'
 
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(Category)
+
 admin.site.register(Tag)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(ProjectPicture, ProjectPictureAdmin)  # Register ProjectPicture model

@@ -17,7 +17,7 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from .models import User, Project, Donation
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, AdminLoginForm, CustomPasswordResetForm, CustomSetPasswordForm
 from .tokens import account_activation_token, password_reset_token
-from .models import Project, Category, Tag
+from .models import Project, Tag
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -27,6 +27,9 @@ from .models import Project, ProjectPicture, Donation, Comment, Rating, Report, 
 from .forms import ProjectForm, ProjectPictureForm, DonationForm, CommentForm, RatingForm, ReportForm
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
+
+
 @login_required
 def create_project(request):
     if request.method == 'POST':
@@ -274,16 +277,16 @@ def project_list(request):
     projects = Project.objects.filter(is_cancelled=False)
     
     if category:
-        projects = projects.filter(category__name__icontains=category)
+        projects = projects.filter(category=category)
     
     if tag:
-        projects = projects.filter(tags__name__icontains=tag)
+        projects = projects.filter(tags_name_icontains=tag)
     
     if search:
         projects = projects.filter(
             Q(title__icontains=search) | 
             Q(details__icontains=search) |
-            Q(tags__name__icontains=search)
+            Q(tags_name_icontains=search)
         ).distinct()
     
     # Filter by status
@@ -291,7 +294,7 @@ def project_list(request):
     now = timezone.now()
     
     if status == 'running':
-        projects = projects.filter(start_time__lte=now, end_time__gte=now)
+        projects = projects.filter(start_time_lte=now, end_time_gte=now)
     elif status == 'completed':
         projects = projects.filter(end_time__lt=now)
     elif status == 'upcoming':
@@ -299,15 +302,24 @@ def project_list(request):
     
     projects = projects.order_by('-created_at')
     
-    categories = Category.objects.all()
+    # Get categories with project counts
+    categories_with_counts = []
+    for key, label in Project.CATEGORY_CHOICES:
+        project_count = Project.objects.filter(category=key, is_cancelled=False).count()
+        categories_with_counts.append({
+            'key': key,
+            'label': label,
+            'project_count': project_count
+        })
+    
     popular_tags = Tag.objects.annotate(project_count=Count('project')).order_by('-project_count')[:10]
     
     return render(request, 'projects/project_list.html', {
         'projects': projects,
-        'categories': categories,
+        'categories': categories_with_counts,  # Now using the list with counts
         'popular_tags': popular_tags,
     })
-
+    
 
 def home(request):
     now = timezone.now()
@@ -337,10 +349,20 @@ def home(request):
         total_donated=Sum('donations__amount')
     ).order_by('-created_at')[:5]
     
-    # All categories with project counts
-    categories = Category.objects.annotate(
-        project_count=Count('project', filter=Q(project__is_cancelled=False))
-    )
+    # All categories with project counts - FIXED HERE
+    categories = []
+
+    for key, label in Project.CATEGORY_CHOICES:
+        project_count = Project.objects.filter(
+            category=key,
+            is_cancelled=False
+        ).count()
+        categories.append({
+            'key': key,
+            'name': label,  # Changed from 'label' to 'name'
+            'slug': slugify(label),  # Added slug field
+            'project_count': project_count
+        })
     
     # Get all tags
     tags = Tag.objects.all()
@@ -376,34 +398,124 @@ def search_projects(request):
     query = request.GET.get('q', '')
     
     if query:
+        # Since category is a CharField with choices, we need to handle it differently
         projects = Project.objects.filter(
             Q(title__icontains=query) |
-            Q(tags__name__icontains=query) |
-            Q(category__name__icontains=query),
+            Q(tags__name__icontains=query),
             is_cancelled=False
         ).distinct().order_by('-created_at')
+        
+        # Also search by category display names
+        category_matches = []
+        for key, label in Project.CATEGORY_CHOICES:
+            if query.lower() in label.lower():
+                category_matches.append(key)
+        
+        if category_matches:
+            # Add category matches to the query
+            category_q = Q()
+            for category_key in category_matches:
+                category_q |= Q(category=category_key)
+            
+            category_projects = Project.objects.filter(
+                category_q, 
+                is_cancelled=False
+            ).distinct()
+            
+            # Combine both querysets
+            projects = (projects | category_projects).distinct().order_by('-created_at')
+            
     else:
         projects = Project.objects.filter(is_cancelled=False).order_by('-created_at')
+    
+    # Get categories for the template if needed
+    categories = []
+    for key, label in Project.CATEGORY_CHOICES:
+        count = Project.objects.filter(category=key, is_cancelled=False).count()
+        categories.append({
+            'key': key,
+            'name': label,
+            'slug': slugify(label),
+            'project_count': count
+        })
     
     context = {
         'projects': projects,
         'query': query,
-        'results_count': projects.count()
+        'results_count': projects.count(),
+        'categories': categories,  # Add categories to context for navbar
     }
     return render(request, 'projects/search_results.html', context)
 
-def category_projects(request, category_id):
-    category = Category.objects.get(id=category_id)
-    projects = Project.objects.filter(
-        category=category,
-        is_cancelled=False
-    ).order_by('-created_at')
+
+def get_categories_with_counts():
+    """Helper function to get categories with project counts"""
+    category_choices = Project.CATEGORY_CHOICES
+    category_data = []
+    for key, label in category_choices:
+        # Use is_cancelled=False instead of is_active=True
+        count = Project.objects.filter(category=key, is_cancelled=False).count()
+        category_data.append({
+            'key': key,
+            'slug': slugify(label),
+            'name': label,
+            'project_count': count
+        })
+    return category_data
+
+
+
+
+def category_projects(request, category_slug):
+    # Get category data
+    category_choices = dict(Project.CATEGORY_CHOICES)
+    category_key = None
+    category_name = None
+    
+    # Find the matching category
+    for key, label in Project.CATEGORY_CHOICES:
+        if slugify(label) == category_slug or key == category_slug:
+            category_key = key
+            category_name = label
+            break
+    
+    if not category_key:
+        from django.http import Http404
+        raise Http404("Category not found")
+    
+    # Get projects in this category - use is_cancelled=False
+    projects = Project.objects.filter(category=category_key, is_cancelled=False)
+    
+    # Get categories for the template using our new function
+    categories = get_categories_with_counts()
     
     context = {
-        'category': category,
-        'projects': projects
+        'category': {'name': category_name, 'key': category_key},
+        'projects': projects,
+        'categories': categories,
     }
+    
     return render(request, 'projects/category_projects.html', context)
+    
+
+def categories_processor(request):
+    # Get counts for each category
+    category_data = []
+    for key, label in Project.CATEGORY_CHOICES:
+        # Use is_cancelled=False instead of is_active=True
+        count = Project.objects.filter(category=key, is_cancelled=False).count()
+        category_slug = slugify(label)
+        
+        # Only include categories with valid slugs
+        if category_slug:
+            category_data.append({
+                'key': key,
+                'name': label,
+                'slug': category_slug,
+                'project_count': count
+            })
+    
+    return {'categories': category_data}
 
 # Admin check function
 def is_admin(user):

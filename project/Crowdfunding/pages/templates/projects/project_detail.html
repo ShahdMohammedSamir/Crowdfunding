@@ -502,10 +502,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success) {
                 if (data.item_deleted) {
                     if (reportType === "comment") {
-                        const commentEl = document.querySelector(`.comment[data-id='${contentId}']`);
+                        const commentEl = document.querySelector(.comment[data-id='${contentId}']);
                         if (commentEl) commentEl.remove();
                     } else if (reportType === "project") {
-                        const projectEl = document.querySelector(`.project[data-id='${contentId}']`);
+                        const projectEl = document.querySelector(.project[data-id='${contentId}']);
                         if (projectEl) projectEl.remove();
                     }
                     alert("Item deleted because it reached 2 reports.");

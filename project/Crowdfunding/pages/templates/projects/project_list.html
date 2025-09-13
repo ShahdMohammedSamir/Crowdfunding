@@ -6,38 +6,47 @@
     <!-- Main White Card -->
     <div class="card shadow-lg border-0 rounded-4 p-4" style="background: #fff;">
         <div class="row">
-            <!-- Filters -->
+            <!-- Filters Sidebar -->
             <div class="col-md-3">
+                <!-- Search Form -->
                 <div class="card shadow-sm border-0 rounded-4 mb-4">
                     <div class="card-header text-white fw-bold rounded-top-4"
                          style="background: linear-gradient(135deg, #28a745, #1e90ff);">
-                        Filters
+                        Search Projects
                     </div>
                     <div class="card-body">
                         <form method="get" class="d-flex flex-column gap-3">
+                            <!-- Search Input -->
+                            <div>
+                                <label for="search" class="form-label fw-semibold">Search</label>
+                                <input type="text" class="form-control rounded-pill" id="search" name="search" 
+                                       value="{{ request.GET.search }}" placeholder="Search projects...">
+                            </div>
+                            
+                            <!-- Category Filter -->
                             <div>
                                 <label for="category" class="form-label fw-semibold">Category</label>
                                 <select class="form-select rounded-pill" id="category" name="category">
                                     <option value="">All Categories</option>
                                     {% for category in categories %}
-                                        <option value="{{ category.name }}" {% if request.GET.category == category.name %}selected{% endif %}>
-                                            {{ category.name }}
+                                        <option value="{{ category.key }}" {% if request.GET.category == category.key %}selected{% endif %}>
+                                            {{ category.label }} ({{ category.project_count }})
                                         </option>
                                     {% endfor %}
                                 </select>
                             </div>
                             
+                            <!-- Status Filter -->
                             <div>
                                 <label for="status" class="form-label fw-semibold">Status</label>
                                 <select class="form-select rounded-pill" id="status" name="status">
                                     <option value="">All Statuses</option>
                                     <option value="running" {% if request.GET.status == 'running' %}selected{% endif %}>Running</option>
-                                    <option value="upcoming" {% if request.GET.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
                                     <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                                    <option value="upcoming" {% if request.GET.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
                                 </select>
                             </div>
                             
-
                             <button type="submit" class="btn rounded-pill text-white fw-bold"
                                     style="background: linear-gradient(135deg, #28a745, #1e90ff);">
                                 Apply Filters
@@ -56,7 +65,7 @@
                                 <a href="{% url 'project_list' %}?tag={{ tag.name }}" 
                                    class="badge rounded-pill px-3 py-2 text-white"
                                    style="background: linear-gradient(135deg, #1e90ff, #28a745); text-decoration:none;">
-                                    {{ tag.name }}
+                                    {{ tag.name }} ({{ tag.project_count }})
                                 </a>
                             {% endfor %}
                         </div>
@@ -68,26 +77,38 @@
             <div class="col-md-9">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold">Projects</h2>
+                    <span class="text-muted">{{ projects.count }} projects found</span>
                 </div>
+                
+                <!-- Active Filters -->
+                {% if request.GET.search or request.GET.category or request.GET.status or request.GET.tag %}
+                <div class="alert alert-info mb-4">
+                    <strong>Active Filters:</strong>
+                    {% if request.GET.search %}Search: "{{ request.GET.search }}"{% endif %}
+                    {% if request.GET.category %} | Category: {{ request.GET.get_category_display }}{% endif %}
+                    {% if request.GET.status %} | Status: {{ request.GET.status }}{% endif %}
+                    {% if request.GET.tag %} | Tag: {{ request.GET.tag }}{% endif %}
+                </div>
+                {% endif %}
                 
                 {% if projects %}
                     <div class="row">
                         {% for project in projects %}
                             <div class="col-md-6 mb-4">
                                 <div class="card h-100 shadow-sm border-0 rounded-4 hover-lift">
-                                    <!-- Carousel -->
-                                    <div id="carousel{{ project.id }}" class="carousel slide" data-bs-ride="carousel">
-                                        <div class="carousel-inner rounded-top-4">
-                                            {% for picture in project.pictures.all %}
-                                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                                    <img src="{{ picture.image.url }}" 
-                                                         class="d-block w-100 rounded-top-4" 
-                                                         alt="{{ project.title }}" 
-                                                         style="height: 200px; object-fit: cover;">
-                                                </div>
-                                            {% endfor %}
+                                    <!-- Project Image -->
+                                    {% if project.pictures.first %}
+                                        <img src="{{ project.pictures.first.image.url }}" 
+                                             class="card-img-top rounded-top-4" 
+                                             alt="{{ project.title }}" 
+                                             style="height: 200px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="card-img-top rounded-top-4 bg-secondary d-flex align-items-center justify-content-center"
+                                             style="height: 200px;">
+                                            <span class="text-white">No Image</span>
                                         </div>
-                                    </div>
+                                    {% endif %}
+                                    
                                     <!-- Card Body -->
                                     <div class="card-body">
                                         <h5 class="card-title fw-bold">
@@ -95,30 +116,42 @@
                                                 {{ project.title }}
                                             </a>
                                         </h5>
-                                        <p class="card-text text-muted small">{{ project.category.name }}</p>
+                                        
+                                        <p class="card-text text-muted small">
+                                            {{ project.get_category_display }}
+                                        </p>
+
                                         <p class="card-text">{{ project.details|truncatewords:20 }}</p>
                                         
+                                        <!-- Progress Bar -->
                                         <div class="progress mb-2" style="height: 8px;">
+                                            {% with progress=project.progress_percentage %}
                                             <div class="progress-bar bg-success" role="progressbar" 
-                                                 style="width: {{ project.progress_percentage }}%;" 
-                                                 aria-valuenow="{{ project.progress_percentage }}" 
+                                                 style="width: {{ progress }}%;" 
+                                                 aria-valuenow="{{ progress }}" 
                                                  aria-valuemin="0" aria-valuemax="100">
                                             </div>
+                                            {% endwith %}
                                         </div>
+                                        
                                         <p class="card-text small text-muted">
                                             <strong>{{ project.progress_percentage|floatformat:1 }}%</strong> funded • 
                                             <strong>{{ project.current_donations|floatformat:2 }} EGP</strong> raised
+                                            of <strong>{{ project.total_target }} EGP</strong> target
                                         </p>
                                         
+                                        <!-- Tags -->
                                         <div class="d-flex flex-wrap gap-1 mb-2">
                                             {% for tag in project.tags.all %}
-                                                <span class="badge rounded-pill px-3 py-2 text-white"
-                                                      style="background: linear-gradient(135deg, #1e90ff, #28a745);">
+                                                <a href="{% url 'project_list' %}?tag={{ tag.name }}"
+                                                   class="badge rounded-pill px-2 py-1 text-white"
+                                                   style="background: linear-gradient(135deg, #1e90ff, #28a745); text-decoration:none;">
                                                     {{ tag.name }}
-                                                </span>
+                                                </a>
                                             {% endfor %}
                                         </div>
                                         
+                                        <!-- Status and Rating -->
                                         <div class="d-flex justify-content-between align-items-center">
                                             <small>
                                                 {% if project.is_cancelled %}
@@ -139,7 +172,22 @@
                                                 {% endif %}
                                             </small>
                                         </div>
+                                        
+                                        <!-- Time Information -->
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                {% if project.is_running %}
+                                                    Ends in {{ project.end_time|timeuntil }}
+                                                {% elif project.is_upcoming %}
+                                                    Starts in {{ project.start_time|timeuntil }}
+                                                {% elif project.is_completed %}
+                                                    Ended {{ project.end_time|timesince }} ago
+                                                {% endif %}
+                                            </small>
+                                        </div>
                                     </div>
+                                    
+                                    <!-- Card Footer -->
                                     <div class="card-footer bg-transparent border-0">
                                         <a href="{% url 'project_detail' project.id %}" 
                                            class="btn btn-outline-primary rounded-pill w-100">
@@ -150,10 +198,39 @@
                             </div>
                         {% endfor %}
                     </div>
+                    
+                    <!-- Pagination (optional) -->
+                    {% if is_paginated %}
+                    <nav aria-label="Project pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
                 {% else %}
                     <div class="text-center py-5">
                         <h4 class="text-muted">No projects found</h4>
-                        <p class="text-muted">Try adjusting your filters or search terms</p>
+                        <p class="text-muted">Try adjusting your filters or check back later</p>
+                        <a href="{% url 'project_list' %}" class="btn btn-primary rounded-pill">
+                            Clear Filters
+                        </a>
                     </div>
                 {% endif %}
             </div>

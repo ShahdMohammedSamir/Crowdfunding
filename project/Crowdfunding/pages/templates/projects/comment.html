@@ -2,9 +2,9 @@
     <div class="d-flex justify-content-between align-items-start mb-2">
         <div class="d-flex align-items-center">
             <div class="user-avatar me-3">
-                <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
-                     style="width: 45px; height: 45px;">
-                    <i class="fas fa-user text-primary"></i>
+                <div style="width: 45px; height: 45px;">
+                <img src="{{ comment.user.profile_picture.url }}" class="user-avatar" alt="{{ user.get_full_name|default:user.email }}">
+
                 </div>
             </div>
             <div>
@@ -68,9 +68,9 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
                 <div class="d-flex align-items-center">
                     <div class="user-avatar me-2">
-                        <div class="bg-info bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
-                             style="width: 35px; height: 35px;">
-                            <i class="fas fa-user text-info"></i>
+                        <div style="width: 35px; height: 35px;">
+                            <img src="{{ reply.user.profile_picture.url }}" class="user-avatar" alt="{{ user.get_full_name|default:user.email }}">
+
                         </div>
                     </div>
                     <div>
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('.reply-btn').forEach(button => {
         button.addEventListener('click', function() {
             const commentId = this.getAttribute('data-comment-id');
-            const form = document.getElementById(`reply-form-${commentId}`);
+            const form = document.getElementById(reply-form-${commentId});
             if (form) {
                 form.style.display = form.style.display === 'none' ? 'block' : 'none';
                 // Focus on textarea when form is shown

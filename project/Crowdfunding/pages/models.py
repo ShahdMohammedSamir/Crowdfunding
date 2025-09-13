@@ -61,7 +61,7 @@ class User(AbstractUser):
     # Use the custom manager
     objects = CustomUserManager()
     
-    def __str__(self):
+    def _str_(self):
         return self.email
     
     def send_activation_email(self, request):
@@ -81,23 +81,36 @@ class User(AbstractUser):
         email = EmailMessage(mail_subject, message, to=[self.email])
         email.send()
 
-class Category(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True)
-    
-    def __str__(self):
-        return self.name
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     
-    def __str__(self):
+    def _str_(self):
         return self.name
+    
+
 class Project(models.Model):
+    CATEGORY_CHOICES = [
+        ('technology', 'Technology'),
+        ('art', 'Art'),
+        ('music', 'Music'),
+        ('film', 'Film & Video'),
+        ('design', 'Design'),
+        ('food', 'Food'),
+        ('publishing', 'Publishing'),
+        ('games', 'Games'),
+        ('fashion', 'Fashion'),
+        ('health', 'Health & Fitness'),
+        ('education', 'Education'),
+        ('environment', 'Environment'),
+        ('community', 'Community'),
+    ]
+
     needs_review = models.BooleanField(default=False)
     title = models.CharField(max_length=200)
     details = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)  # fixed list here ✅
     total_target = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(1)])
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
@@ -105,63 +118,58 @@ class Project(models.Model):
     is_featured = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    
-    tags = models.ManyToManyField(Tag, blank=True)
-    
-    def __str__(self):
+
+    tags = models.ManyToManyField("Tag", blank=True)  # keep tags flexible
+
+    def _str_(self):
         return self.title
-    
+
     def clean(self):
-       if self.end_time <= self.start_time:
-        raise ValidationError('End time must be after start time.')
-  
+        if self.end_time <= self.start_time:
+            raise ValidationError('End time must be after start time.')
 
     def save(self, *args, **kwargs):
-      skip_validation = kwargs.pop("skip_validation", False)
+        skip_validation = kwargs.pop("skip_validation", False)
+        if not skip_validation:
+            self.full_clean()
+        super().save(*args, **kwargs)
 
-      if not skip_validation:
-           self.full_clean()
-
-      super().save(*args, **kwargs)
-
-        
     @property
     def average_rating(self):
-        from django.db.models import Avg
+        from django.db.models import Avg # type: ignore
         return self.ratings.aggregate(Avg('rating'))['rating__avg'] or 0
- 
+
     @property
     def current_donations(self):
         return self.donations.aggregate(total=models.Sum('amount'))['total'] or 0
-    
+
     @property
     def progress_percentage(self):
         if self.total_target == 0:
             return 0
         return (self.current_donations / self.total_target) * 100
-    
+
     @property
     def can_cancel(self):
         return self.progress_percentage < 25 and not self.is_cancelled
-    
+
     @property
     def is_running(self):
         now = timezone.now()
         return self.start_time <= now <= self.end_time and not self.is_cancelled
-    
+
     @property
     def is_completed(self):
         now = timezone.now()
         return now > self.end_time and not self.is_cancelled
-    
+
     @property
     def is_upcoming(self):
         now = timezone.now()
         return now < self.start_time and not self.is_cancelled
-    
+
     @property
     def status(self):
-        """Return a string status for easier use in templates"""
         if self.is_cancelled:
             return "cancelled"
         elif self.is_upcoming:
@@ -173,7 +181,6 @@ class Project(models.Model):
         return "unknown"
 
     def debug_status(self):
-        """Debug method to check status calculation with time details"""
         now = timezone.now()
         return {
             'current_time': now.strftime("%Y-%m-%d %H:%M:%S %Z"),
@@ -186,43 +193,35 @@ class Project(models.Model):
             'calculated_status': self.status,
             'is_cancelled': self.is_cancelled
         }
+
     def cancel(self):
-
-      if self.can_cancel:
-        self.is_cancelled = True
-
-        self.save(skip_validation=True)
-        return True
-      return False
+        if self.can_cancel:
+            self.is_cancelled = True
+            self.save(skip_validation=True)
+            return True
+        return False
 
     def get_similar_projects(self, limit=4):
-        """
-        Simple version: Get projects with same category and any common tags
-        """
-        # First try: projects with same category and at least one common tag
         similar = Project.objects.filter(
             category=self.category,
             tags__in=self.tags.all(),
             is_cancelled=False
         ).exclude(id=self.id).distinct().order_by('-created_at')[:limit]
-        
-        # If not enough, add more from same category
+
         if len(similar) < limit:
             additional = Project.objects.filter(
                 category=self.category,
                 is_cancelled=False
             ).exclude(id=self.id).exclude(id__in=[p.id for p in similar]).order_by('-created_at')[:limit - len(similar)]
             similar = list(similar) + list(additional)
-        
 
         return similar
-    
 
 class ProjectPicture(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='pictures')
     image = models.ImageField(upload_to='projects/')
     
-    def __str__(self):
+    def _str_(self):
         return f"Picture for {self.project.title}"
     
     
@@ -233,7 +232,7 @@ class Donation(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     donated_at = models.DateTimeField(auto_now_add=True)
     
-    def __str__(self):
+    def _str_(self):
         return f"{self.user.email} donated {self.amount} to {self.project.title}"
     
     def clean(self):
@@ -251,7 +250,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     
-    def __str__(self):
+    def _str_(self):
         return f"Comment by {self.user.email} on {self.project.title}"
     
     def clean(self):
@@ -266,7 +265,7 @@ class Rating(models.Model):
     class Meta:
         unique_together = ('user', 'project')  # A user can rate a project only once
     
-    def __str__(self):
+    def _str_(self):
         return f"Rating {self.rating} by {self.user.email} for {self.project.title}"
     
     def clean(self):
@@ -297,7 +296,7 @@ class Report(models.Model):
         if self.report_type == 'comment' and self.project:
             raise ValidationError('Project should not be specified for comment reports.')
     
-    def __str__(self):
+    def _str_(self):
         if self.project:
             return f"Report on {self.project.title} by {self.reporter.email}"
         return f"Report on comment by {self.reporter.email}"
