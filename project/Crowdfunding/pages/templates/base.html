@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Launch Crowdfunding{% endblock %}</title>
+  
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+      --admin-gradient: linear-gradient(135deg, #FF5722 0%, #9C27B0 100%);
+      --launch-accent: #FF9800;
+      --navbar-height: 80px;
+    }
+    
+    body {
+      background-color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding-top: var(--navbar-height);
+    }
+
+    /* Enhanced Navbar with Launch theme */
+    .navbar {
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+      padding: 0.7rem 1rem;
+      height: var(--navbar-height);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1030;
+      transition: all 0.3s ease;
+    }
+    
+    .navbar-brand {
+          margin-right: 45px;
+
+      font-size: 2rem;
+      font-weight: 800;
+      padding: 0.5rem 0;
+      display: flex;
+      align-items: center;
+      color: #fff !important;
+      letter-spacing: -0.5px;
+    }
+    
+    .navbar-brand span {
+      color: var(--launch-accent);
+      font-weight: 900;
+    }
+    
+    .nav-link {
+      color: #fff !important;
+      font-weight: 500;
+      padding: 0.8rem 1.1rem !important;
+      border-radius: 12px;
+      margin: 0 0.2rem;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+    
+    .nav-link.active {
+      background-color: rgba(255, 255, 255, 0.25);
+      font-weight: 600;
+    }
+    
+    .nav-link i {
+      margin-right: 0.6rem;
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    /* Admin specific styles */
+    .admin-nav {
+      background: var(--admin-gradient) !important;
+    }
+    
+    .admin-nav .nav-link:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Improved navbar toggler */
+    .navbar-toggler {
+      border: none;
+      padding: 0.5rem;
+      font-size: 1.5rem;
+    }
+    
+    .navbar-toggler:focus {
+      box-shadow: none;
+    }
+
+    /* Enhanced dropdown menus */
+    .dropdown-menu {
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      border: none;
+      margin-top: 0.8rem;
+      padding: 0.7rem;
+      overflow: hidden;
+    }
+    
+    .dropdown-item {
+      padding: 0.8rem 1.2rem;
+      border-radius: 10px;
+      margin: 0.25rem 0;
+      display: flex;
+      align-items: center;
+      transition: all 0.25s ease;
+      font-weight: 500;
+    }
+    
+    .dropdown-item i {
+      margin-right: 0.8rem;
+      width: 22px;
+      text-align: center;
+      color: #4CAF50;
+    }
+    
+    .dropdown-item:hover {
+      background-color: #E8F5E9;
+      transform: translateX(5px);
+    }
+    
+    .dropdown-divider {
+      margin: 0.6rem 0;
+    }
+
+    /* Categories dropdown specific */
+    .categories-dropdown {
+      max-height: 380px;
+      width: 300px;
+      overflow-y: auto;
+    }
+    
+    .categories-dropdown .badge {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.6rem;
+      background: var(--primary-gradient) !important;
+    }
+
+    /* Enhanced search functionality */
+    .search-form-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0 0.5rem;
+    }
+    
+    .search-form {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 50px;
+      padding: 0.6rem;
+      transition: all 0.3s ease;
+      width: 50px;
+      height: 50px;
+      overflow: hidden;
+      backdrop-filter: blur(5px);
+    }
+    
+    .search-form.active {
+      width: 280px;
+      background: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .search-input {
+      border: none;
+      background: transparent;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      width: 0;
+      opacity: 0;
+      transition: all 0.35s ease;
+      font-weight: 500;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .search-form.active .search-input {
+      width: 230px;
+      opacity: 1;
+    }
+
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .search-input:focus {
+      outline: none;
+      box-shadow: none;
+      background: transparent;
+    }
+    
+    .search-btn {
+      background: none;
+      border: none;
+      color: white;
+      padding: 0.6rem;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+      position: absolute;
+      right: 6px;
+    }
+    
+    .search-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.08);
+    }
+    
+    /* User avatar in navbar */
+    .user-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      margin-right: 0.8rem;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-link:hover .user-avatar {
+      border-color: rgba(255, 255, 255, 0.8);
+      transform: scale(1.05);
+    }
+    
+    /* Notification badge */
+    .notification-badge {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      font-size: 0.7rem;
+      padding: 0.35rem 0.5rem;
+      border-radius: 50%;
+      background: #ff4757;
+    }
+    
+    /* Launch button style */
+    .btn-launch {
+      background: var(--launch-accent);
+      color: white;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      display: flex;
+      align-items: center;
+      padding: 0.8rem 1.2rem;
+      margin-left: 0.5rem;
+    }
+    
+    .btn-launch:hover {
+      background: #F57C00;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255, 152, 0, 0.4);
+      color: white;
+    }
+    
+    .btn-launch i {
+      margin-right: 0.5rem;
+    }
+
+    /* Navbar container adjustments */
+    .navbar > .container {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
+    
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+    }
+    
+    /* Improved responsive behavior */
+    @media (max-width: 991.98px) {
+      .navbar-collapse {
+        background: var(--primary-gradient);
+        padding: 1.2rem;
+        border-radius: 0 0 18px 18px;
+        margin-top: 0.8rem;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px);
+      }
+      
+      .admin-nav .navbar-collapse {
+        background: var(--admin-gradient);
+      }
+      
+      .nav-link {
+        margin: 0.3rem 0;
+        padding: 0.9rem 1.2rem !important;
+        justify-content: flex-start;
+      }
+      
+      .search-form-container {
+        margin: 0.8rem 0;
+        order: 3;
+        width: 100%;
+      }
+      
+      .search-form {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.15);
+        height: auto;
+      }
+      
+      .search-form.active {
+        width: 100%;
+      }
+      
+      .search-form.active .search-input {
+        width: 100%;
+      }
+      
+      .search-btn {
+        position: relative;
+        right: 0;
+      }
+      
+      .dropdown-menu {
+        margin-top: 0.5rem;
+        margin-left: 1.5rem;
+        width: 90%;
+      }
+      
+      .btn-launch {
+        margin: 0.5rem 0;
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    
+    /* Animation for navbar elements */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .navbar-nav .nav-item {
+      animation: fadeIn 0.5s ease forwards;
+      opacity: 0;
+    }
+    
+    .navbar-nav .nav-item:nth-child(1) { animation-delay: 0.1s; }
+    .navbar-nav .nav-item:nth-child(2) { animation-delay: 0.2s; }
+    .navbar-nav .nav-item:nth-child(3) { animation-delay: 0.3s; }
+    .navbar-nav .nav-item:nth-child(4) { animation-delay: 0.4s; }
+    .navbar-nav .nav-item:nth-child(5) { animation-delay: 0.5s; }
+    
+    /* Subtle shine effect on navbar */
+    .navbar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .navbar:hover::after {
+      left: 100%;
+    }
+  </style>
+</head>
+<body>
+<!-- Enhanced Navbar with Launch Branding -->
+<nav class="navbar navbar-expand-lg {% if user.is_staff or user.is_superuser %}admin-nav{% endif %}">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <i class="fas fa-rocket me-2"></i><span>Launch</span>Crowd
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <i class="fas fa-bars text-white"></i>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Left side navigation -->
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a href="{% url 'home' %}" class="nav-link active">
+            <i class="fas fa-home"></i> Home
+          </a>
+        </li>
+        <!-- Categories Dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" 
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-layer-group"></i> Categories
+          </a>
+          <ul class="dropdown-menu categories-dropdown" aria-labelledby="categoriesDropdown">
+            {% for category in categories %}
+            <li>
+              <a class="dropdown-item" href="{% url 'category_projects' category.id %}">
+                <i class="fas fa-folder-open"></i> {{ category.name }} 
+                <span class="badge bg-primary float-end mt-1">{{ category.project_count }}</span>
+              </a>
+            </li>
+            {% empty %}
+            <li>
+              <a class="dropdown-item text-muted" href="#">
+                <i class="fas fa-exclamation-circle"></i> No categories available
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </li>
+        
+        <li class="nav-item">
+          <a href="{% url 'project_list' %}" class="nav-link">
+            <i class="fas fa-bolt"></i> Projects
+          </a>
+        </li>
+      </ul>
+      
+      <!-- Search Section -->
+      <div class="search-form-container">
+        <!-- Search Form with toggle icon -->
+        <form class="search-form" method="GET" action="{% url 'search_projects' %}" id="searchForm">
+          <input type="text" name="q" class="form-control search-input" 
+                 placeholder="Discover projects..." aria-label="Search projects"
+                 id="searchInput">
+          <button class="btn search-btn" type="submit">
+            <i class="fas fa-search"></i>
+          </button>
+        </form>
+      </div>
+
+      <!-- Right side navigation -->
+      <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+          {% if user.is_staff or user.is_superuser %}
+            <!-- Admin user menu -->
+            <li class="nav-item">
+              <a href="{% url 'admin_dashboard' %}" class="nav-link">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="/admin/" class="nav-link">
+                <i class="fas fa-cogs"></i> Admin Panel
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" 
+                 data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://ui-avatars.com/api/?name=Admin+User&background=ff5722&color=fff" class="user-avatar" alt="Admin">
+                Admin
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                <li><a class="dropdown-item" href="{% url 'admin_logout' %}"><i class="fas fa-sign-out-alt"></i> Admin Logout</a></li>
+              </ul>
+            </li>
+          {% else %}
+            <!-- Regular user menu -->
+            <li class="nav-item">
+              {% if user.is_authenticated %}
+                <a href="{% url 'create_project' %}" class="btn btn-launch">
+                  <i class="fas fa-plus"></i> Start Project
+                </a>
+              {% endif %}
+            </li>
+    
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                 data-bs-toggle="dropdown" aria-expanded="false">
+                 {% if user.profile_picture %}
+                   <img src="{{ user.profile_picture.url }}" class="user-avatar" alt="{{ user.get_full_name|default:user.email }}">
+                 {% else %}
+                   <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|default:user.email }}&background=4CAF50&color=fff" 
+                        class="user-avatar" alt="{{ user.get_full_name|default:user.email }}">
+                 {% endif %}
+                 {{ user.get_full_name|default:user.email }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fas fa-user"></i> My Profile</a></li>
+                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+              </ul>
+            </li>
+          {% endif %}
+        {% else %}
+          <!-- Not authenticated menu - Updated with dropdown -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="loginDropdown" role="button" 
+               data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-sign-in-alt"></i> Login
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loginDropdown">
+              <li><a class="dropdown-item" href="{% url 'login' %}">
+                <i class="fas fa-user"></i> User Login
+              </a></li>
+              <li><a class="dropdown-item" href="{% url 'admin_login' %}">
+                <i class="fas fa-lock"></i> Admin Login
+              </a></li>
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'register' %}" class="btn btn-launch">
+              <i class="fas fa-user-plus"></i> Sign Up
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <!-- Main Content -->
+  <div class="container py-5">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Enhanced search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchForm = document.getElementById('searchForm');
+      const searchInput = document.getElementById('searchInput');
+      let isSearchVisible = false;
+
+      // Toggle search form on search icon click
+      if (searchForm) {
+        searchForm.addEventListener('click', function(e) {
+          if (!isSearchVisible && e.target.closest('.search-btn')) {
+            searchForm.classList.add('active');
+            setTimeout(() => {
+              searchInput.focus();
+            }, 100);
+            isSearchVisible = true;
+            e.stopPropagation();
+          }
+        });
+      }
+
+      // Close search when clicking outside
+      document.addEventListener('click', function(event) {
+        if (isSearchVisible && 
+            !event.target.closest('.search-form-container')) {
+          if (searchInput.value.trim() === '') {
+            searchForm.classList.remove('active');
+            isSearchVisible = false;
+          }
+        }
+      });
+
+      // Close search on escape key
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && isSearchVisible) {
+          searchForm.classList.remove('active');
+          isSearchVisible = false;
+        }
+      });
+
+      // Handle form submission
+      if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+          if (searchInput.value.trim() === '') {
+            e.preventDefault();
+            searchInput.focus();
+          }
+        });
+      }
+
+      // Auto-dismiss alerts after 5 seconds
+      setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+          const bsAlert = new bootstrap.Alert(alert);
+          bsAlert.close();
+        });
+      }, 5000);
+      
+      // Initialize tooltips
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+      
+      // Add subtle animation to navbar brand
+      const navbarBrand = document.querySelector('.navbar-brand');
+      if (navbarBrand) {
+        navbarBrand.addEventListener('mouseover', () => {
+          navbarBrand.style.transform = 'scale(1.05)';
+        });
+        navbarBrand.addEventListener('mouseout', () => {
+          navbarBrand.style.transform = 'scale(1)';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

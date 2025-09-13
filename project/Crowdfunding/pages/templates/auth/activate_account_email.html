@@ -1,0 +1,16 @@
+<h2>Activate Your Account</h2>
+
+<p>Hi {{ user.first_name }},</p>
+
+<p>Welcome to Crowdfunding! Please activate your account by clicking the link below:</p>
+
+<p>
+    <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}">
+        Activate your email
+    </a>
+</p>
+
+<p>This activation link expires in 24 hours.</p>
+
+<p>Thank you,<br>
+<strong>Crowdfunding Team</strong></p>

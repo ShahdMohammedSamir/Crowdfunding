@@ -1,0 +1,30 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.home, name='home'),
+    path('register/', views.register, name='register'),
+    path('login/', views.user_login, name='login'),
+    path('admin/login/', views.admin_login, name='admin_login'),
+    path('logout/', views.user_logout, name='logout'),
+    path('admin/logout/', views.admin_logout, name='admin_logout'),
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('profile/', views.profile, name='profile'),
+    path('activate/<uidb64>/<token>/', views.activate_account, name='activate'),
+    path('resend-activation/', views.resend_activation, name='resend_activation'),
+    path('delete-account/', views.delete_account, name='delete_account'),
+    path('switch-to-user/', views.switch_to_user, name='switch_to_user'),
+    path('switch-to-admin/', views.switch_to_admin, name='switch_to_admin'),
+    path('password-reset/', views.password_reset_request, name='password_reset'),
+    path('password-reset/done/', views.password_reset_done, name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('password-reset-complete/', views.password_reset_complete, name='password_reset_complete'),
+      path('search/', views.search_projects, name='search_projects'),
+    path('category/<int:category_id>/', views.category_projects, name='category_projects'),
+     path('projects/', views.project_list, name='project_list'),
+    path('projects/create/', views.create_project, name='create_project'),
+    path('projects/<int:project_id>/', views.project_detail, name='project_detail'),
+    path('projects/<int:project_id>/cancel/', views.cancel_project, name='cancel_project'),
+    path('projects/report/', views.report_content, name='report_content'),
+      path("report/", views.report_content, name="report_content"),
+]

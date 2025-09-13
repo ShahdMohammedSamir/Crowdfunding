@@ -1,0 +1,784 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Load the external CSS file -->
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+
+<!-- Add a loading animation for images -->
+<style>
+  /* Inline styles for critical content only */
+  .loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: loading 1.5s infinite;
+    border-radius: var(--card-radius);
+  }
+  
+  @keyframes loading {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+  
+  .hero-section {
+    background: linear-gradient(135deg, #28a745, #1e90ff);
+    border-radius: 25px;
+    padding: 60px 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden; /* makes image stay inside shape */
+  }
+
+  .hero-bg-img {
+    position: absolute;
+    top: 50%;
+    right: -50px;
+    transform: translateY(-50%);
+    height: 100%;
+    max-width: none;
+    opacity: 0.25; /* makes image transparent */
+    pointer-events: none; /* keeps it non-interactive */
+  }
+  
+  /* Enhanced Project Card Styles */
+  .project-card {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    height: 100%;
+    background: white;
+    position: relative;
+  }
+  
+  .project-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  .project-image-container {
+    position: relative;
+    overflow: hidden;
+    height: 220px;
+  }
+  
+  .project-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .project-card:hover .project-image {
+    transform: scale(1.05);
+  }
+  
+  .project-category-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+  }
+  
+  .project-card-body {
+    padding: 1.5rem;
+  }
+  
+  .project-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: #2d3748;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .project-description {
+    color: #718096;
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .progress-container {
+    margin-bottom: 1.25rem;
+  }
+  
+  .progress-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .progress-amount {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .progress-percentage {
+    color: #718096;
+  }
+  
+  .progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #edf2f7;
+    overflow: hidden;
+  }
+  
+  .progress-bar {
+    background: var(--primary-gradient);
+    border-radius: 4px;
+  }
+  
+  .project-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .project-backers {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #718096;
+  }
+  
+  .project-backers i {
+    margin-right: 0.4rem;
+    color: var(--primary);
+  }
+  
+  .view-details-btn {
+    padding: 0.5rem 1.25rem;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .view-details-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+  }
+  
+  /* Featured project card enhancements */
+  .featured-project-card {
+    border-left: 4px solid var(--launch-accent);
+  }
+  
+  .featured-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    padding: 0.4rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 20px;
+    background: var(--launch-accent);
+    color: white;
+    box-shadow: 0 4px 10px rgba(255, 152, 0, 0.3);
+  }
+  
+  /* Placeholder styling */
+  .project-image-placeholder {
+    height: 220px;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+  }
+  /* Custom styles for the carousel */
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    filter: invert(1); /* Makes the arrows white (visible on dark background) */
+  }
+  
+  .carousel-content {
+    background: white;
+  }
+  
+  /* Ensure all text is black or dark gray */
+  .carousel-content h3,
+  .carousel-content .fw-bold {
+    color: black !important;
+  }
+  
+  .carousel-content p,
+  .carousel-content span:not(.fw-bold) {
+    color: #495057 !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .carousel-content {
+      padding: 1.5rem !important;
+    }
+    
+    .carousel-image,
+    .carousel-placeholder {
+      height: 250px !important;
+    }
+  }
+</style>
+
+<body>
+  <!-- Main Content -->
+  <div class="container-fluid px-0">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-content">
+          <div class="row align-items-center">
+            <!-- Left text -->
+            <div class="col-lg-6 slide-in-left">
+              <h1 class="display-4 fw-bold mb-3">Fund Ideas That Change The World</h1>
+              <p class="lead mb-4">Join our community of backers and bring creative projects to life through crowdfunding.</p>
+              <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'create_project' %}" class="btn btn-light rounded-pill px-4 py-2 fw-bold hover-lift">Start a Project</a>
+                <a href="{% url 'project_list' %}" class="btn btn-outline-light rounded-pill px-4 py-2 hover-lift">Explore Projects</a>
+              </div>
+            </div>
+
+            <!-- Right illustration -->
+            <div class="col-lg-6 text-lg-end d-none d-lg-block slide-in-right position-relative">
+              <img src="https://techstory.in/wp-content/uploads/2016/05/chi-carol-sente-crowdfunding-1871-20150302.jpg"
+                   alt="Crowdfunding Illustration" 
+                   class="hero-bg-img">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section with curved container -->
+    <section class="curved-section mx-3 mx-md-4 mx-lg-5">
+      <div class="container">
+        <div class="row text-center">
+          <div class="col-md-3 col-6 mb-4 mb-md-0 stagger-item">
+            <div class="animate-stat">
+              <div class="stat-number" id="projectsCount">0</div>
+              <div class="stat-label">Projects Funded</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6 mb-4 mb-md-0 stagger-item">
+            <div class="animate-stat">
+              <div class="stat-number" id="backersCount">0</div>
+              <div class="stat-label">Active Backers</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6 stagger-item">
+            <div class="animate-stat">
+              <div class="stat-number">$<span id="amountRaised">0</span></div>
+              <div class="stat-label">Amount Raised</div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6 stagger-item">
+            <div class="animate-stat">
+              <div class="stat-number" id="successRate">0</div>
+              <div class="stat-label">Success Rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+<!-- Diagonal Section for Highest Rated Projects -->
+<section style="color: black; background: #f8f9fa; padding: 4rem 0;  max-width: 1050px;margin: auto;">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="section-title" style="color: black;">Highest Rated Projects</h2>
+    </div>
+    
+    <div id="projectCarousel" class="carousel slide hero-slider" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        {% for project in highest_rated %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+          <div class="row g-0 bg-white rounded-4 shadow-sm overflow-hidden mx-auto" style="height:350px;">
+            <div class="col-md-6">
+              {% if project.pictures.first %}
+              <img src="{{ project.pictures.first.image.url }}" 
+                   class="img-fluid w-100 carousel-image" alt="{{ project.title }}" style="height: 350px; object-fit: cover;">
+              {% else %}
+              <div class="carousel-placeholder w-100 placeholder-img d-flex align-items-center justify-content-center" style="height: 350px; background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);">
+                <i class="fas fa-image fa-3x text-white"></i>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-6 carousel-content p-4 d-flex align-items-center" style="color: black;">
+              <div class="w-100">
+                <span class="badge bg-primary mb-2">{{ project.category.name }}</span>
+                <h3 class="mb-2" style="color: black; font-size: 1.4rem;">{{ project.title }}</h3>
+                <p class="mb-3" style="color: #495057; font-size: 0.95rem;">{{ project.details|truncatewords:25 }}</p>
+                
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-bold" style="color: black; font-size: 0.95rem;">${{ project.current_donations|floatformat:0 }}</span>
+                    <span style="color: #6c757d; font-size: 0.9rem;">of ${{ project.total_target }} goal</span>
+                  </div>
+                  <div class="progress" style="height: 8px;">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         style="width: {{ project.progress_percentage }}%; background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);"
+                         aria-valuenow="{{ project.progress_percentage }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                  </div>
+                  <small style="color: #6c757d; font-size: 0.85rem;">{{ project.progress_percentage|floatformat:0 }}% funded</small>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <span class="rating-stars" style="color: #FFD700;">
+                      <i class="fas fa-star"></i>
+                    </span>
+                    <span class="ms-1 fw-bold" style="color: black; font-size: 0.95rem;">{{ project.average_rating|floatformat:1 }}</span>
+                    <span class="ms-2" style="color: #6c757d; font-size: 0.85rem;">({{ project.ratings.count }} reviews)</span>
+                  </div>
+                  <div class="backer-count" style="color: #6c757d; font-size: 0.9rem;">
+                    <i class="fas fa-users me-1"></i>
+                    <span>{{ project.donations.count }} backers</span>
+                  </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                  <a href="{% url 'project_detail' project.id %}" class="btn btn-primary hover-lift" style="background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%); border: none; padding: 0.5rem 1rem; font-size: 0.9rem;">Donate Now</a>
+                  <a href="#" class="btn btn-outline-primary hover-lift" style="border-color: #4CAF50; color: #4CAF50; padding: 0.5rem 0.8rem;">
+                    <i class="far fa-heart"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="carousel-item active">
+          <div class="row g-0 bg-white rounded-4 shadow-sm overflow-hidden mx-auto" style="max-width: 900px;">
+            <div class="col-md-6">
+              <div class="carousel-placeholder w-100 d-flex align-items-center justify-content-center" style="height: 350px; background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);">
+                <i class="fas fa-image fa-3x text-white"></i>
+              </div>
+            </div>
+            <div class="col-md-6 carousel-content p-4 d-flex align-items-center">
+              <div class="text-center w-100" style="color: black;">
+                <h3 style="font-size: 1.5rem;">No Projects Yet</h3>
+                <p class="mb-3" style="color: #6c757d;">Be the first to create a project!</p>
+                <a href="{% url 'create_project' %}" class="btn btn-primary hover-lift" style="background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%); border: none; padding: 0.5rem 1.5rem;">Create Project</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#projectCarousel" data-bs-slide="prev" style="width: 45px; height: 45px; top: 50%; transform: translateY(-50%); left: 10px; background: rgba(0,0,0,0.7); border-radius: 50%;">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#projectCarousel" data-bs-slide="next" style="width: 45px; height: 45px; top: 50%; transform: translateY(-50%); right: 10px; background: rgba(0,0,0,0.7); border-radius: 50%;">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+    <!-- Latest Projects with curved container -->
+    <section class="curved-section mx-3 mx-md-4 mx-lg-5 mt-5">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="section-title">Latest Projects</h2>
+          <a href="{% url 'project_list' %}" class="btn btn-outline-primary hover-lift">View All</a>
+        </div>
+        
+        <div class="row g-4">
+          {% for project in latest_projects %}
+          <div class="col-md-4 stagger-item">
+            <div class="project-card hover-lift">
+              <div class="project-image-container">
+                {% if project.pictures.first %}
+                <img src="{{ project.pictures.first.image.url }}" 
+                     class="project-image" alt="{{ project.title }}">
+                {% else %}
+                <div class="project-image-placeholder">
+                  <i class="fas fa-image"></i>
+                </div>
+                {% endif %}
+                <span class="project-category-badge">{{ project.category.name }}</span>
+              </div>
+              
+              <div class="project-card-body">
+                <h5 class="project-title">{{ project.title }}</h5>
+                <p class="project-description">{{ project.details|truncatewords:20 }}</p>
+                
+                <div class="progress-container">
+                  <div class="progress-stats">
+                    <span class="progress-amount">${{ project.current_donations|floatformat:0 }} raised</span>
+                    <span class="progress-percentage">{{ project.progress_percentage|floatformat:0 }}%</span>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         style="width: {{ project.progress_percentage }}%"
+                         aria-valuenow="{{ project.progress_percentage }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="project-meta">
+                  <div class="project-backers">
+                    <i class="fas fa-users"></i>
+                    <span>{{ project.donations.count }} backers</span>
+                  </div>
+                  <a href="{% url 'project_detail' project.id %}" class="view-details-btn">View Details</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12 text-center py-5">
+            <h4 class="text-muted">No projects yet</h4>
+            <p class="text-muted">Be the first to create a project!</p>
+            <a href="{% url 'create_project' %}" class="btn btn-primary hover-lift">Create Project</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Wave Divider -->
+    <div class="wave-divider">
+      <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z" class="shape-fill" fill="#f8fafc" fill-opacity="1"></path>
+      </svg>
+    </div>
+
+    <!-- Featured Projects with asymmetric shape -->
+    <section class="asymmetric-shape curved-section mx-3 mx-md-4 mx-lg-5 mt-5" style="background: var(--light-bg);">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="section-title">Featured Projects</h2>
+        </div>
+        
+        <div class="row g-4">
+          {% for project in featured_projects %}
+          <div class="col-md-6 stagger-item">
+            <div class="project-card featured-project-card position-relative hover-lift">
+              <span class="featured-badge">
+                <i class="fas fa-star me-1"></i> Featured
+              </span>
+              <div class="row g-0">
+                <div class="col-md-5">
+                  {% if project.pictures.first %}
+                  <img src="{{ project.pictures.first.image.url }}" 
+                       class="img-fluid h-100 w-100 project-image" alt="{{ project.title }}" style="object-fit: cover;">
+                  {% else %}
+                  <div class="project-image-placeholder h-100">
+                    <i class="fas fa-image"></i>
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="col-md-7">
+                  <div class="project-card-body">
+                    <h5 class="project-title">{{ project.title }}</h5>
+                    <p class="project-description">{{ project.details|truncatewords:15 }}</p>
+                    
+                    <div class="progress-container">
+                      <div class="progress-stats">
+                        <span class="progress-amount">${{ project.current_donations|floatformat:0 }} raised</span>
+                        <span class="progress-percentage">{{ project.progress_percentage|floatformat:0 }}%</span>
+                      </div>
+                      <div class="progress">
+                        <div class="progress-bar" 
+                             role="progressbar" 
+                             style="width: {{ project.progress_percentage }}%"
+                             aria-valuenow="{{ project.progress_percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="project-meta">
+                      <div class="project-backers">
+                        <i class="fas fa-users"></i>
+                        <span>{{ project.donations.count }} backers</span>
+                      </div>
+                      <a href="{% url 'project_detail' project.id %}" class="view-details-btn">Support Now</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12 text-center py-5">
+            <h4 class="text-muted">No featured projects yet</h4>
+            <p class="text-muted">Check back later for featured projects!</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Popular Tags with pill shapes -->
+    <section class="curved-section mx-3 mx-md-4 mx-lg-5 mt-5">
+      <div class="container">
+        <h2 class="section-title">Popular Tags</h2>
+        
+        <div class="tag-cloud">
+          {% for tag in tags %}
+          <a href="{% url 'project_list' %}?tag={{ tag.name }}" class="btn btn-outline-secondary tag-btn hover-lift">
+            #{{ tag.name }}
+          </a>
+          {% empty %}
+          <p class="text-muted">No tags yet</p>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section with rounded cards -->
+    <section class="curved-section mx-3 mx-md-4 mx-lg-5 mt-5">
+      <div class="container">
+        <h2 class="section-title">What Our Backers Say</h2>
+        
+        <div class="row g-4">
+          <div class="col-md-4 stagger-item">
+            <div class="testimonial-card hover-lift">
+              <div class="d-flex align-items-center mb-3">
+                <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=4CAF50&color=fff" alt="User Avatar" class="avatar me-3">
+                <div>
+                  <h5 class="mb-0">Sarah Johnson</h5>
+                  <small class="text-muted">Project Backer</small>
+                </div>
+              </div>
+              <p class="mb-0">"I've backed over 15 projects on this platform and every experience has been fantastic. The transparency and communication from creators is outstanding!"</p>
+            </div>
+          </div>
+          <div class="col-md-4 stagger-item">
+            <div class="testimonial-card hover-lift">
+              <div class="d-flex align-items-center mb-3">
+                <img src="https://ui-avatars.com/api/?name=Michael+Chen&background=2196F3&color=fff" alt="User Avatar" class="avatar me-3">
+                <div>
+                  <h5 class="mb-0">Michael Chen</h5>
+                  <small class="text-muted">Project Creator</small>
+                </div>
+              </div>
+              <p class="mb-0">"This platform helped me turn my idea into reality. The support from the community was overwhelming and the tools provided made the process smooth."</p>
+            </div>
+          </div>
+          <div class="col-md-4 stagger-item">
+            <div class="testimonial-card hover-lift">
+              <div class="d-flex align-items-center mb-3">
+                <img src="https://ui-avatars.com/api/?name=Emma+Rodriguez&background=FF9800&color=fff" alt="User Avatar" class="avatar me-3">
+                <div>
+                  <h5 class="mb-0">Emma Rodriguez</h5>
+                  <small class="text-muted">Project Backer</small>
+                </div>
+              </div>
+              <p class="mb-0">"I love discovering innovative projects here. The rating system helps me identify quality projects, and I've never been disappointed with my backing decisions."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter Section with curved bottom -->
+    <section class="search-container curved-section-bottom">
+      <div class="container">
+        <div class="row justify-content-center text-center text-white">
+          <div class="col-lg-8">
+            <h3 class="mb-3">Never Miss a Great Project</h3>
+            <p class="mb-4">Subscribe to our newsletter and get updates on the latest projects and success stories.</p>
+            <div class="input-group mb-3 mx-auto" style="max-width: 500px;">
+              <input type="email" class="form-control rounded-pill me-2" placeholder="Your email address" aria-label="Email">
+              <button class="btn btn-light rounded-pill px-4 hover-lift" type="button">Subscribe</button>
+            </div>
+            <small class="opacity-75">We care about your data. Read our <a href="#" class="text-white">Privacy Policy</a></small>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+  </div>
+
+  <script>
+    // Enhanced search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchForm = document.getElementById('searchForm');
+      const searchInput = document.getElementById('searchInput');
+      let isSearchVisible = false;
+
+      // Toggle search form on search icon click
+      if (searchForm) {
+        searchForm.addEventListener('click', function(e) {
+          if (!isSearchVisible && e.target.closest('.search-btn')) {
+            searchForm.classList.add('active');
+            setTimeout(() => {
+              searchInput.focus();
+            }, 100);
+            isSearchVisible = true;
+            e.stopPropagation();
+          }
+        });
+      }
+
+      // Close search when clicking outside
+      document.addEventListener('click', function(event) {
+        if (isSearchVisible && 
+            !event.target.closest('.search-form-container')) {
+          if (searchInput.value.trim() === '') {
+            searchForm.classList.remove('active');
+            isSearchVisible = false;
+          }
+        }
+      });
+
+      // Close search on escape key
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && isSearchVisible) {
+          searchForm.classList.remove('active');
+          isSearchVisible = false;
+        }
+      });
+
+      // Handle form submission
+      if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+          if (searchInput.value.trim() === '') {
+            e.preventDefault();
+            searchInput.focus();
+          }
+        });
+      }
+
+      // Auto-dismiss alerts after 5 seconds
+      setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+          const bsAlert = new bootstrap.Alert(alert);
+          bsAlert.close();
+        });
+      }, 5000);
+      
+      // Initialize tooltips
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+      
+      // Add subtle animation to navbar brand
+      const navbarBrand = document.querySelector('.navbar-brand');
+      if (navbarBrand) {
+        navbarBrand.addEventListener('mouseover', () => {
+          navbarBrand.style.transform = 'scale(1.05)';
+        });
+        navbarBrand.addEventListener('mouseout', () => {
+          navbarBrand.style.transform = 'scale(1)';
+        });
+      }
+      
+      // Animated counter for stats
+      const animateCounter = (element, end, duration, prefix = '') => {
+          let start = 0;
+          const increment = end / (duration / 16);
+          const timer = setInterval(() => {
+              start += increment;
+              if (start >= end) {
+                  element.textContent = prefix + Math.round(end);
+                  clearInterval(timer);
+              } else {
+                  element.textContent = prefix + Math.round(start);
+              }
+          }, 16);
+      };
+      
+      // Animate statistics
+      animateCounter(document.getElementById('projectsCount'), {{ total_projects }}, 2000);
+      animateCounter(document.getElementById('backersCount'), {{ total_backers }}, 2000);
+      animateCounter(document.getElementById('amountRaised'), {{ total_donations }}, 2000, '$');
+      animateCounter(document.getElementById('successRate'), {{ success_rate }}, 2000);
+      
+      // Add animation to project cards when they come into view
+      const observerOptions = {
+          threshold: 0.1,
+          rootMargin: '0px 0px -50px 0px'
+      };
+      
+      const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                  entry.target.classList.add('animate-stat');
+                  observer.unobserve(entry.target);
+              }
+          });
+      }, observerOptions);
+      
+      document.querySelectorAll('.animate-stat').forEach(stat => {
+          observer.observe(stat);
+      });
+      
+      // Stagger animation for items
+      const staggerItems = document.querySelectorAll('.stagger-item');
+      staggerItems.forEach((item, index) => {
+        setTimeout(() => {
+          item.classList.add('visible');
+        }, index * 150);
+      });
+      
+      // Lazy loading for images
+      if ('IntersectionObserver' in window) {
+        const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const lazyImage = entry.target;
+              lazyImage.src = lazyImage.dataset.src;
+              lazyImage.classList.remove('lazy');
+              lazyImageObserver.unobserve(lazyImage);
+            }
+          });
+        });
+        
+        document.querySelectorAll('img.lazy').forEach(lazyImage => {
+          lazyImageObserver.observe(lazyImage);
+        });
+      }
+    });
+  </script>
+{% endblock %}

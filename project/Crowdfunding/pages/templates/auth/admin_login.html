@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login - Crowdfunding Platform{% endblock %}
+
+{% block content %}
+<style>
+    .auth-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin: 2rem 0;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #0d6efd 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .auth-header h3 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.8rem;
+    }
+    
+    .auth-header i {
+        margin-right: 12px;
+        font-size: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 0.3rem rgba(76, 175, 80, 0.15);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4CAF50 0%, #0d6efd 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 16px;
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+    }
+    
+    .text-muted {
+        color: #6c757d !important;
+        transition: color 0.3s ease;
+    }
+    
+    .text-muted:hover {
+        color: #4CAF50 !important;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .back-link i {
+        margin-right: 8px;
+        transition: transform 0.3s ease;
+    }
+    
+    .back-link:hover i {
+        transform: translateX(-3px);
+    }
+    
+    /* Input focus effects */
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 10;
+    }
+    
+    .input-group input {
+        padding-left: 45px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .auth-container {
+            margin: 1rem;
+            border-radius: 15px;
+        }
+        
+        .auth-header {
+            padding: 1.5rem;
+        }
+        
+        .auth-header h3 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-5">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h3><i class="fas fa-lock"></i> Admin Login</h3>
+        <p class="mb-0 mt-2 opacity-75">Access the administration dashboard</p>
+      </div>
+      <div class="p-4">
+        <form method="POST">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              {% for error in form.non_field_errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+          
+          <div class="mb-4">
+            <label for="id_username" class="form-label">Username</label>
+            <div class="input-group">
+              <i class="fas fa-user"></i>
+              {{ form.username }}
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="id_password" class="form-label">Password</label>
+            <div class="input-group">
+              <i class="fas fa-key"></i>
+              {{ form.password }}
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary w-100 py-3">
+            <i class="fas fa-sign-in-alt me-2"></i> Login as Admin
+          </button>
+        </form>
+        
+        <div class="text-center mt-4 pt-3 border-top">
+          <a href="{% url 'login' %}" class="back-link text-muted">
+            <i class="fas fa-arrow-left"></i> Back to User Login
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form-control class to all inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('form-control');
+            }
+        });
+        
+        // Add placeholder if not exists
+        const usernameInput = document.getElementById('id_username');
+        const passwordInput = document.getElementById('id_password');
+        
+        if (usernameInput && !usernameInput.getAttribute('placeholder')) {
+            usernameInput.setAttribute('placeholder', 'Enter your username');
+        }
+        
+        if (passwordInput && !passwordInput.getAttribute('placeholder')) {
+            passwordInput.setAttribute('placeholder', 'Enter your password');
+        }
+    });
+</script>
+{% endblock %}

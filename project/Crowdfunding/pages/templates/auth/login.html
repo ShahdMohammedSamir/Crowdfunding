@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Crowdfunding Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="auth-container shadow-lg rounded-4 overflow-hidden">
+      <!-- Header with gradient background matching navbar -->
+      <div class="auth-header text-white text-center py-4" style="background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);">
+        <h2 class="mb-1"><i class="fas fa-sign-in-alt me-2"></i>Welcome Back</h2>
+        <p class="mb-0 opacity-75">Sign in to your crowdfunding account</p>
+      </div>
+      
+      <div class="auth-body bg-white p-5">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+<!-- Admin login notice -->
+<div class="alert alert-info d-flex align-items-center">
+  <i class="fas fa-info-circle me-2"></i>
+  <div>
+    <strong>Administrators:</strong> Please use the 
+    <a href="{% url 'admin_login' %}" class="alert-link">admin login page</a>
+  </div>
+</div>
+
+
+        <!-- LOGIN FORM -->
+        <form method="POST" action="{% url 'login' %}" class="needs-validation" novalidate>
+          {% csrf_token %}
+          
+          <!-- Email Field -->
+          <div class="mb-4">
+            <label for="id_username" class="form-label fw-semibold text-dark">
+              <i class="fas fa-envelope me-2" style="color: #4CAF50;"></i>Email Address
+            </label>
+            <input type="email" name="username" class="form-control border-2 py-3 px-4" 
+                   id="id_username" placeholder="Enter your email" required autocomplete="email"
+                   value="{% if form.username.value %}{{ form.username.value }}{% endif %}">
+            <div class="invalid-feedback">
+              Please enter a valid email address.
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="mb-4">
+            <label for="id_password" class="form-label fw-semibold text-dark">
+              <i class="fas fa-lock me-2" style="color: #4CAF50;"></i>Password
+            </label>
+            <div class="input-group">
+              <input type="password" name="password" class="form-control border-2 py-3 px-4" 
+                     id="id_password" placeholder="Enter your password" required autocomplete="current-password">
+              <button type="button" class="btn btn-outline-secondary border-2" onclick="togglePassword()">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="invalid-feedback">
+              Please enter your password.
+            </div>
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+              <label class="form-check-label text-muted" for="rememberMe">Remember me</label>
+            </div>
+            <a href="{% url 'password_reset' %}" class="text-decoration-none fw-semibold" style="color: #4CAF50;">
+              Forgot password?
+            </a>
+          </div>
+
+          <!-- Login Button -->
+          <div class="mb-4">
+            <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold" style="background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%); border: none;">
+              <i class="fas fa-sign-in-alt me-2"></i> Sign In
+            </button>
+          </div>
+        </form>
+
+        <!-- Divider -->
+        <div class="position-relative text-center my-4">
+          <hr>
+          <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">or</span>
+        </div>
+
+        <!-- Resend activation option for inactive accounts -->
+        {% if show_resend_option %}
+        <div class="mt-4 p-4 border rounded-3 bg-light">
+          <div class="d-flex align-items-center mb-2">
+            <i class="fas fa-envelope-open-text me-2 text-warning"></i>
+            <h6 class="mb-0">Didn't receive the activation email?</h6>
+          </div>
+          <form method="POST" action="{% url 'resend_activation' %}">
+            {% csrf_token %}
+            <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="user_id" value="{{ request.session.inactive_user_id }}">
+            <button type="submit" class="btn btn-outline-warning btn-sm">
+              <i class="fas fa-paper-plane me-1"></i> Resend Activation Email
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
+        <!-- Sign Up Link -->
+        <div class="text-center mt-4 pt-3 border-top">
+          <p class="text-muted mb-2">Don't have an account?</p>
+          <a href="{% url 'register' %}" class="btn btn-outline-success px-4" style="border-color: #4CAF50; color: #4CAF50;">
+            <i class="fas fa-user-plus me-2"></i> Create Account
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .auth-container {
+    border: 1px solid #e9ecef;
+    margin: 2rem 0;
+  }
+  
+  .auth-header {
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+  
+  .form-control {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .form-control:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+  }
+  
+  .btn-primary {
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+  }
+  
+  .btn-outline-success {
+    transition: all 0.3s ease;
+  }
+  
+  .btn-outline-success:hover {
+    background-color: #4CAF50;
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  .input-group .form-control {
+    border-right: none;
+  }
+  
+  .input-group .btn {
+    border-left: none;
+    border-color: #dee2e6;
+  }
+</style>
+
+<script>
+  // Password visibility toggle
+  function togglePassword() {
+    const passwordInput = document.getElementById('id_password');
+    const toggleButton = document.querySelector('.btn-outline-secondary i');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      toggleButton.classList.remove('fa-eye');
+      toggleButton.classList.add('fa-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      toggleButton.classList.remove('fa-eye-slash');
+      toggleButton.classList.add('fa-eye');
+    }
+  }
+  
+  // Form validation
+  (function () {
+    'use strict'
+    const forms = document.querySelectorAll('.needs-validation')
+    Array.from(forms).forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+          event.preventDefault()
+          event.stopPropagation()
+        }
+        form.classList.add('was-validated')
+      }, false)
+    })
+  })()
+</script>
+{% endblock %}

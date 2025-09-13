@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin: 2rem 0;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #0d6efd 100%);
+        color: white;
+        padding: 1.5rem 2rem;
+        text-align: center;
+        border: none;
+    }
+    
+    .card-header h4 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.8rem;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .warning-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.3rem rgba(220, 53, 69, 0.15);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 12px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
+        background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+    }
+    
+    .alert-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #f8f9fa 100%);
+        border: 2px solid #ffeaa7;
+        border-radius: 12px;
+        color: #856404;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .alert-warning strong {
+        color: #dc3545;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .card {
+            margin: 1rem;
+            border-radius: 15px;
+        }
+        
+        .card-header {
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .button-group .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-exclamation-triangle me-2"></i>Delete Account</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="warning-icon">
+                    <i class="fas fa-user-slash"></i>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Warning:</strong> This action is permanent and cannot be undone.
+                </div>
+                
+                <p class="lead">Are you sure you want to delete your account? This will permanently remove:</p>
+                
+                <ul class="list-group list-group-flush mb-4 text-start">
+                    <li class="list-group-item"><i class="fas fa-times-circle text-danger me-2"></i>Your profile information</li>
+                    <li class="list-group-item"><i class="fas fa-times-circle text-danger me-2"></i>All your projects</li>
+                    <li class="list-group-item"><i class="fas fa-times-circle text-danger me-2"></i>Your donation history</li>
+                    <li class="list-group-item"><i class="fas fa-times-circle text-danger me-2"></i>Your comments and ratings</li>
+                </ul>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Enter your password to confirm:</label>
+                        <div class="input-group">
+                            <i class="fas fa-key position-absolute mt-3 ms-3 text-muted"></i>
+                            <input type="password" class="form-control ps-5" id="password" name="password" 
+                                   placeholder="Enter your password" required>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-danger flex-fill">
+                            <i class="fas fa-trash-alt me-2"></i>Permanently Delete Account
+                        </button>
+                        <a href="{% url 'profile' %}" class="btn btn-secondary flex-fill">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add confirmation before submitting
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        });
+        
+        // Add focus effect to password input
+        const passwordInput = document.getElementById('password');
+        if (passwordInput) {
+            passwordInput.addEventListener('focus', function() {
+                this.style.borderColor = '#dc3545';
+            });
+            
+            passwordInput.addEventListener('blur', function() {
+                this.style.borderColor = '#e9ecef';
+            });
+        }
+    });
+</script>
+{% endblock %}
