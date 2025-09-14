@@ -250,7 +250,8 @@ def report_content(request):
                     return JsonResponse({
                         "success": True,
                         "message": "Comment deleted due to multiple reports.",
-                        "item_deleted": True
+                        "item_deleted": True,
+                         "redirect_url": "/" 
                     })
 
             else:
@@ -280,13 +281,13 @@ def project_list(request):
         projects = projects.filter(category=category)
     
     if tag:
-        projects = projects.filter(tags_name_icontains=tag)
+        projects = projects.filter(tags__name__icontains=tag)
     
     if search:
         projects = projects.filter(
             Q(title__icontains=search) | 
             Q(details__icontains=search) |
-            Q(tags_name_icontains=search)
+            Q(tags__name__icontains=search)
         ).distinct()
     
     # Filter by status

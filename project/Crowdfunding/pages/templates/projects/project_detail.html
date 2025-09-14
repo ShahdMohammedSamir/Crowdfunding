@@ -502,14 +502,21 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success) {
                 if (data.item_deleted) {
                     if (reportType === "comment") {
-                        const commentEl = document.querySelector(.comment[data-id='${contentId}']);
-                        if (commentEl) commentEl.remove();
+                        // Find and remove the comment element
+                        const commentElements = document.querySelectorAll('.comment');
+                        for (let element of commentElements) {
+                            if (element.dataset.id === contentId) {
+                                element.remove();
+                                break;
+                            }
+                        }
                     } else if (reportType === "project") {
-                        const projectEl = document.querySelector(.project[data-id='${contentId}']);
-                        if (projectEl) projectEl.remove();
+                        // This is a project detail page, so we can't remove the project
+                        // Instead, redirect to home page or show a message
+                        alert("This project has been removed due to multiple reports. You will be redirected to the home page.");
+                        window.location.href = "{% url 'home' %}";
                     }
-                    alert("Item deleted because it reached 2 reports.");
-                } else {  // ✅ Fixed: Added missing closing brace
+                } else {
                     alert("Report submitted successfully.");
                 }
                 reportModal.hide();
